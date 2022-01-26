@@ -240,3 +240,51 @@ const handleDecrease = () => {
   dispatch(decreaseCount());
 };
 ```
+
+## redux toolkit으로 코드량 줄이기
+
+### todoReducer.js
+
+```js
+import { createSlice } from "@reduxjs/toolkit";
+
+const initialState = [{ id: Date.now(), text: "go work" }];
+const todoReducer = createSlice({
+  name: "todoReducer",
+  initialState,
+  reducers: {
+    AaddTodo(state, action) {
+      state.push({ id: Date.now(), text: action.payload });
+    },
+    AremoveTodo(state, action) {
+      return state.filter((todo) => todo.id !== action.payload);
+    },
+  },
+});
+
+export const { AaddTodo, AremoveTodo } = todoReducer.actions;
+export default todoReducer.reducer;
+```
+
+### index.js
+
+```js
+import React from "react";
+import ReactDOM from "react-dom";
+import "./index.css";
+import App from "./App";
+import rootReducer from "./rootReducer";
+import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
+
+const store = configureStore({ reducer: rootReducer });
+
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById("root")
+);
+```
+
+> 사용하는 부분은 그대로 useDispatch, useSelector 사용
