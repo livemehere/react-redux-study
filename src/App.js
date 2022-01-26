@@ -1,23 +1,38 @@
-import logo from './logo.svg';
-import './App.css';
+import { useDispatch, useSelector } from "react-redux";
+import Todo from "./components/todo";
+import { AaddTodo } from "./todoReducer";
 
 function App() {
+  const { todoReducer, counterReducer } = useSelector((state) => state);
+  const dispatch = useDispatch();
+
+  const addTodo = (e) => {
+    const text = e.target[0].value;
+    e.preventDefault();
+    dispatch(AaddTodo(text));
+    e.target[0].value = "";
+  };
+
+  const handleIncrease = () => {};
+
+  const handleDecrease = () => {};
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>React Todo with Redux</h1>
+      <form onSubmit={addTodo}>
+        <input type="text" />
+        <button>ADD</button>
+      </form>
+      <ul>
+        {todoReducer.map((todo) => (
+          <Todo key={todo.id} {...todo} />
+        ))}
+      </ul>
+      <h1>Counter</h1>
+      <span>{counterReducer}</span>
+      <button onClick={handleIncrease}>+</button>
+      <button onClick={handleDecrease}>-</button>
     </div>
   );
 }

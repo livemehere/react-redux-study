@@ -1,70 +1,205 @@
-# Getting Started with Create React App
+# React 에서 Redux 사용하기
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 여러가지 reducer를 생성하고, combine하고, useSelect, useDispatch 사용하기
 
-## Available Scripts
+### index.js
 
-In the project directory, you can run:
+```js
+import React from "react";
+import ReactDOM from "react-dom";
+import "./index.css";
+import App from "./App";
+import { createStore } from "redux";
+import rootReducer from "./rootReducer";
+import { Provider } from "react-redux";
 
-### `yarn start`
+const store = createStore(rootReducer);
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById("root")
+);
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### app.js
 
-### `yarn test`
+```js
+import { useDispatch, useSelector } from "react-redux";
+import Todo from "./components/todo";
+import { DECREASE, INCREASE } from "./counterReducer";
+import { ADD } from "./todoReducer";
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+function App() {
+  const { todoReducer, counterReducer } = useSelector((state) => state);
+  const dispatch = useDispatch();
 
-### `yarn build`
+  const addTodo = (e) => {
+    const text = e.target[0].value;
+    e.preventDefault();
+    dispatch({ type: ADD, text: text });
+    e.target[0].value = "";
+  };
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+  const handleIncrease = () => {
+    dispatch({ type: INCREASE });
+  };
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+  const handleDecrease = () => {
+    dispatch({ type: DECREASE });
+  };
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+  return (
+    <div className="App">
+      <h1>React Todo with Redux</h1>
+      <form onSubmit={addTodo}>
+        <input type="text" />
+        <button>ADD</button>
+      </form>
+      <ul>
+        {todoReducer.map((todo) => (
+          <Todo key={todo.id} {...todo} />
+        ))}
+      </ul>
+      <h1>Counter</h1>
+      <span>{counterReducer}</span>
+      <button onClick={handleIncrease}>+</button>
+      <button onClick={handleDecrease}>-</button>
+    </div>
+  );
+}
 
-### `yarn eject`
+export default App;
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### todo.js
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```js
+import { useDispatch } from "react-redux";
+import { REMOVE } from "../todoReducer";
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+export default function Todo({ id, text }) {
+  const dispatch = useDispatch();
+  return (
+    <li>
+      {text}
+      <button onClick={() => dispatch({ type: REMOVE, id: id })}>x</button>
+    </li>
+  );
+}
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### rootReducer
 
-## Learn More
+```js
+import { combineReducers } from "redux";
+import todoReducer from "./todoReducer";
+import counterReducer from "./counterReducer";
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+const rootReducer = combineReducers({
+  todoReducer,
+  counterReducer,
+});
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+export default rootReducer;
+```
 
-### Code Splitting
+### todoReducer
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```js
+export const ADD = "ADD";
+export const REMOVE = "REMOVE";
 
-### Analyzing the Bundle Size
+const initalState = [{ id: Date.now(), text: "go work" }];
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+const todoReducer = (state = initalState, action) => {
+  switch (action.type) {
+    case ADD:
+      return [...state, { id: Date.now(), text: action.text }];
+    case REMOVE:
+      return state.filter((todo) => todo.id !== action.id);
+    default:
+      return state;
+  }
+};
 
-### Making a Progressive Web App
+export default todoReducer;
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### counterReducer
 
-### Advanced Configuration
+```js
+export const INCREASE = "INCREASE";
+export const DECREASE = "DECREASE";
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+const initalState = 0;
 
-### Deployment
+const counterReducer = (state = initalState, action) => {
+  switch (action.type) {
+    case INCREASE:
+      return state + 1;
+    case DECREASE:
+      return state - 1;
+    default:
+      return state;
+  }
+};
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+export default counterReducer;
+```
 
-### `yarn build` fails to minify
+## Action 분리하기
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### todoReducer.js
+
+```js
+export const ADD = "ADD";
+export const REMOVE = "REMOVE";
+
+export const AaddTodo = (text) => ({ type: ADD, text: text });
+export const AremoveTodo = (id) => ({ type: REMOVE, id: id });
+
+const initalState = [{ id: Date.now(), text: "go work" }];
+
+const todoReducer = (state = initalState, action) => {
+  switch (action.type) {
+    case ADD:
+      return [...state, { id: Date.now(), text: action.text }];
+    case REMOVE:
+      return state.filter((todo) => todo.id !== action.id);
+    default:
+      return state;
+  }
+};
+
+export default todoReducer;
+```
+
+### app.js
+
+```js
+const addTodo = (e) => {
+  const text = e.target[0].value;
+  e.preventDefault();
+  dispatch(AaddTodo(text));
+  e.target[0].value = "";
+};
+```
+
+### todo.js
+
+```js
+import { useDispatch } from "react-redux";
+import { AremoveTodo } from "../todoReducer";
+
+export default function Todo({ id, text }) {
+  const dispatch = useDispatch();
+  return (
+    <li>
+      {text}
+      <button onClick={() => dispatch(AremoveTodo(id))}>x</button>
+    </li>
+  );
+}
+```
