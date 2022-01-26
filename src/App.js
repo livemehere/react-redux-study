@@ -1,5 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import Todo from "./components/todo";
+import { decreaseCount, increaseCount } from "./counterReducer";
 import { AaddTodo } from "./todoReducer";
 
 function App() {
@@ -13,9 +14,13 @@ function App() {
     e.target[0].value = "";
   };
 
-  const handleIncrease = () => {};
+  const handleIncrease = () => {
+    dispatch(increaseCount());
+  };
 
-  const handleDecrease = () => {};
+  const handleDecrease = () => {
+    dispatch(decreaseCount());
+  };
 
   return (
     <div className="App">

@@ -1,6 +1,9 @@
 export const INCREASE = "INCREASE";
 export const DECREASE = "DECREASE";
 
+export const increaseCount = () => ({ type: INCREASE });
+export const decreaseCount = () => ({ type: DECREASE });
+
 const initalState = 0;
 
 const counterReducer = (state = initalState, action) => {
